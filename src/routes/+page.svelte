@@ -6,16 +6,22 @@
     import type Peer from "peerjs";
 
     $: peerId = "";
-    $: messages = [];
+    $: messages = new Array<MessageObject>();
     $: connectedIds = new Array<string>();
 
     let message = "";
 
     let peer: Peer;
-    let connections: DataConnection[] = [];
+    const connections: DataConnection[] = [];
+
+    type MessageObject = {
+        id: string;
+        message: string;
+    };
 
     onMount(async () => {
         if (!browser) return;
+        // timeout just because dev environment should give peer a moment to dispose the old connection
         setTimeout(() => {
             let room = new URLSearchParams(location.search).get("room");
             if (!room) {
@@ -40,6 +46,16 @@
                     connections.push(conn);
                     connectedIds.push(conn.peer);
                     connectedIds = connectedIds;
+                    conn.send({
+                        id: peerId,
+                        message: "Hello",
+                    });
+                });
+                conn.on("data", (data) => {
+                    onReceivedMesssage(data);
+                });
+                conn.on("close", () => {
+                    onOtherConnectionClosed(conn);
                 });
             }
         });
@@ -51,26 +67,22 @@
                     .toString(36)
                     .substring(2);
                 return handleConnection(randomPeerIdWithChars, room);
-            }, 100);
+            }, 500);
         });
         peer.on("connection", (conn) => {
             console.log("New connection", conn.peer);
             connections.push(conn);
             connectedIds.push(conn.peer);
             connectedIds = connectedIds;
-
             conn.on("data", (data) => {
-                console.log("Received data", data);
-                // messages.push(data);
-                // messages = messages;
+                onReceivedMesssage(data);
             });
             conn.on("close", () => {
                 onOtherConnectionClosed(conn);
             });
         });
         function onOtherConnectionClosed(con: DataConnection) {
-            const id = con.peer;
-            connections = connections.filter((c) => c !== con);
+            connections.filter((c) => c !== con);
             connectedIds = connectedIds.filter((id) => id !== con.peer);
         }
     }
@@ -81,12 +93,38 @@
         pushState(url.href, "");
     }
 
-    function __sendMessage() {}
+    function __sendMessage(evt: SubmitEvent) {
+        evt.preventDefault();
+        if (!message) return;
+        const data = {
+            id: peerId,
+            message,
+        };
+        message = "";
+        onReceivedMesssage(data);
+        for (const conn of connections) {
+            console.log("Sending message to", conn.peer);
+            conn.send(data);
+        }
+    }
+    function onReceivedMesssage(data: any) {
+        if (!data) return;
+        else if (
+            typeof data === "object" &&
+            "id" in data &&
+            "message" in data
+        ) {
+            messages.push(data as MessageObject);
+            while (messages.length > 20) {
+                messages.shift();
+            }
+            messages = messages;
+        }
+    }
 </script>
 
-<h1>Welcome to SvelteKit</h1>
 <p>
-    {peerId}
+    My ID: {peerId}
 </p>
 
 <form on:submit|preventDefault={__sendMessage}>
@@ -94,12 +132,13 @@
     <button type="submit">Send</button>
 </form>
 
-<ul>
-    {#each messages as message}
-        <li>{message}</li>
+<div>
+    {#each messages as msg}
+        <p>{msg.id}: {msg.message}</p>
     {/each}
-</ul>
+</div>
 
+<p>Connected to:</p>
 <ul>
     {#each connectedIds as conn}
         <li>{conn}</li>
