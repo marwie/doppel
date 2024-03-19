@@ -1,18 +1,40 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+
     export let symbols = ["X", "O"];
     export let clicked: (index: number) => void = () => {};
     export let clickable = false;
 
     function handleClick(evt: Event) {
-        console.log(evt.target?.textContent);
-        const index = symbols.indexOf(evt.target?.textContent);
-        clicked?.(index);
+        if (evt.target && evt.target instanceof HTMLElement) {
+            const index = symbols.indexOf(evt.target.textContent!);
+            clicked?.(index);
+        }
+    }
+
+    onMount(() => {
+        updateRotations();
+    });
+
+    $: getSymbols = () => {
+        return symbols;
+    };
+    $: randomRotations = new Array<number>();
+    function updateRotations() {
+        randomRotations.length = symbols.length;
+        for (let i = 0; i < symbols.length; i++) {
+            randomRotations[i] = Math.random() * Math.PI;
+        }
     }
 </script>
 
 <div class="card {clickable ? 'clickable' : 'not-clickable'}">
-    {#each symbols as symbol}
-        <button on:click={handleClick}>{symbol}</button>
+    {#each symbols as symbol, index}
+        <button on:click={handleClick}>
+            <div style="transform: rotate({randomRotations[index]}rad)">
+                {symbol}
+            </div>
+        </button>
     {/each}
 </div>
 
