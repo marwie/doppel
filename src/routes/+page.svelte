@@ -9,11 +9,11 @@
     $: peerId = "";
     $: messages = new Array<MessageObject>();
     $: connectedIds = new Array<string>();
+    const connections: DataConnection[] = [];
 
     let message = "";
 
     let peer: Peer;
-    const connections: DataConnection[] = [];
 
     type MessageObject = {
         id: string;
@@ -23,14 +23,17 @@
     onMount(async () => {
         if (!browser) return;
         // timeout just because dev environment should give peer a moment to dispose the old connection
-        setTimeout(() => {
-            let room = new URLSearchParams(location.search).get("room");
-            if (!room) {
-                room = Math.random().toString(36).substring(2);
-                __setRoom(room);
-            }
-            handleConnection(room, null);
-        }, 500 + Math.random() * 500);
+        setTimeout(
+            () => {
+                let room = new URLSearchParams(location.search).get("room");
+                if (!room) {
+                    room = Math.random().toString(36).substring(2);
+                    __setRoom(room);
+                }
+                handleConnection(room, null);
+            },
+            500 + Math.random() * 500,
+        );
     });
 
     // Well since we just want to make a double and always have only two users (for now)
@@ -113,7 +116,7 @@
         if (isHosting()) {
             generateNewGameCard();
             generatePlayerCard();
-            setTimeout(()=>{
+            setTimeout(() => {
                 broadcast({ gameCard: currentGameCard });
             }, 1000);
         }
@@ -128,14 +131,13 @@
         else if (typeof data === "object") {
             if ("id" in data && "message" in data) {
                 messages.push(data as MessageObject);
-                while (messages.length > 20) {
+                while (messages.length > 10) {
                     messages.shift();
                 }
                 messages = messages;
-            }
-            else if ("gameCard" in data) {
+            } else if ("gameCard" in data) {
                 currentGameCard = data.gameCard;
-                if(playerCard.length === 0) generatePlayerCard();
+                if (playerCard.length === 0) generatePlayerCard();
             }
         }
     }
@@ -179,7 +181,8 @@
         }
         // matching symbol
         const matchIndex = Math.floor(Math.random() * selected.length);
-        selected[matchIndex] = currentGameCard[Math.floor(Math.random() * currentGameCard.length)];
+        selected[matchIndex] =
+            currentGameCard[Math.floor(Math.random() * currentGameCard.length)];
         playerCard = selected;
     }
 
@@ -194,29 +197,37 @@
     }
 </script>
 
-{#if currentGameCard.length > 0}
-    <Card clicked={onClickedCard} symbols={currentGameCard} />
-    <Card clicked={onClickedCard} symbols={playerCard} />
-{/if}
+<div class="page">
+    {#if currentGameCard.length > 0}
+        <Card symbols={currentGameCard} />
+        <Card clicked={onClickedCard} symbols={playerCard} clickable />
+    {/if}
 
-<p>
-    My ID: {peerId}
-</p>
+    {#if connectedIds.length > 0}
+        <span>Playing with {connectedIds.join(", ")}. You are {peerId}</span>
+        <h3>Chat</h3>
+        <form on:submit|preventDefault={__sendMessage}>
+            <input type="text" bind:value={message} />
+            <button type="submit">Send</button>
+        </form>
+    {:else}
+        <p>Waiting for another player.<br />Send this link to a friend</p>
+    {/if}
 
-<form on:submit|preventDefault={__sendMessage}>
-    <input type="text" bind:value={message} />
-    <button type="submit">Send</button>
-</form>
-
-<div>
-    {#each messages as msg}
-        <p>{msg.id}: {msg.message}</p>
-    {/each}
+    <div class="chat">
+        {#each messages as msg}
+            <span>{msg.id}: {msg.message}</span>
+        {/each}
+    </div>
 </div>
 
-<p>Connected to:</p>
-<ul>
-    {#each connectedIds as conn}
-        <li>{conn}</li>
-    {/each}
-</ul>
+<style>
+    .page {
+        padding: 1rem;
+    }
+    .chat {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+    }
+</style>
