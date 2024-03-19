@@ -5,6 +5,7 @@
     import type { DataConnection } from "peerjs";
     import type Peer from "peerjs";
     import Card from "../components/card.svelte";
+    import { getCuteName } from "$lib/cute names";
 
     $: peerId = "";
     $: messages = new Array<MessageObject>();
@@ -27,7 +28,7 @@
             () => {
                 let room = new URLSearchParams(location.search).get("room");
                 if (!room) {
-                    room = Math.random().toString(36).substring(2);
+                    room = getCuteName();
                     __setRoom(room);
                 }
                 handleConnection(room, null);
@@ -67,10 +68,7 @@
             console.error("Peer error", err.message);
             peer.destroy();
             setTimeout(() => {
-                const randomPeerIdWithChars = Math.random()
-                    .toString(36)
-                    .substring(2);
-                return handleConnection(randomPeerIdWithChars, room);
+                return handleConnection(getCuteName(), room);
             }, 500);
         });
         peer.on("connection", (conn) => {
