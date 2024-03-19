@@ -32,6 +32,13 @@
         }, 1000);
     });
 
+
+    // Well since we just want to make a double and always have only two users (for now)
+    // we can ignore connecting all peers to each other
+    function isHosting() {
+        return peerId === new URLSearchParams(location.search).get("room");
+    }
+
     async function handleConnection(room: string, other: null | string) {
         const Peer = (await import("peerjs")).default;
         peer = new Peer(room);
