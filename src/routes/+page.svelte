@@ -195,6 +195,22 @@
             // that wasn't it
         }
     }
+
+    function shareLink(evt?: Event) {
+        evt?.preventDefault();
+        const navigator = window.navigator;
+        if (navigator.share) {
+            navigator?.share({
+                title: "Play a game with me",
+                text: "I'm playing a game with a friend. Join me!",
+                url: location.href,
+            });
+        } else {
+            navigator.clipboard.writeText(location.href);
+            if (evt?.target instanceof HTMLElement)
+                evt.target.innerText = "Link copied to clipboard";
+        }
+    }
 </script>
 
 <div class="page">
@@ -211,7 +227,10 @@
             <button type="submit">Send</button>
         </form>
     {:else}
-        <p>Waiting for another player.<br />Send this link to a friend</p>
+        <p>
+            Want to play?<br />
+            <a href="/" on:click={shareLink}>Send this link to a friend</a>
+        </p>
     {/if}
 
     <div class="chat">
