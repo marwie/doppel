@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import type { DataConnection } from "peerjs";
     import type Peer from "peerjs";
+    import Card from "../components/card.svelte";
 
     $: peerId = "";
     $: messages = new Array<MessageObject>();
@@ -29,9 +30,8 @@
                 __setRoom(room);
             }
             handleConnection(room, null);
-        }, 1000);
+        }, 500 + Math.random() * 500);
     });
-
 
     // Well since we just want to make a double and always have only two users (for now)
     // we can ignore connecting all peers to each other
@@ -50,13 +50,7 @@
                 const conn = peer.connect(other);
                 conn.on("open", () => {
                     console.log("Connected to", other);
-                    connections.push(conn);
-                    connectedIds.push(conn.peer);
-                    connectedIds = connectedIds;
-                    conn.send({
-                        id: peerId,
-                        message: "Hello",
-                    });
+                    onUserConnected(conn);
                 });
                 conn.on("data", (data) => {
                     onReceivedMesssage(data);
@@ -77,10 +71,7 @@
             }, 500);
         });
         peer.on("connection", (conn) => {
-            console.log("New connection", conn.peer);
-            connections.push(conn);
-            connectedIds.push(conn.peer);
-            connectedIds = connectedIds;
+            onUserConnected(conn);
             conn.on("data", (data) => {
                 onReceivedMesssage(data);
             });
@@ -88,10 +79,6 @@
                 onOtherConnectionClosed(conn);
             });
         });
-        function onOtherConnectionClosed(con: DataConnection) {
-            connections.filter((c) => c !== con);
-            connectedIds = connectedIds.filter((id) => id !== con.peer);
-        }
     }
 
     function __setRoom(id: string) {
@@ -109,26 +96,108 @@
         };
         message = "";
         onReceivedMesssage(data);
+        broadcast(data);
+    }
+    function broadcast(data: any) {
         for (const conn of connections) {
-            console.log("Sending message to", conn.peer);
             conn.send(data);
         }
     }
+
+    function onUserConnected(con: DataConnection) {
+        connections.push(con);
+        connectedIds.push(con.peer);
+        connectedIds = connectedIds;
+        console.log("User connections changed", connectedIds.length);
+        if (connectedIds.length < 1) return;
+        if (isHosting()) {
+            generateNewGameCard();
+            generatePlayerCard();
+            setTimeout(()=>{
+                broadcast({ gameCard: currentGameCard });
+            }, 1000);
+        }
+    }
+    function onOtherConnectionClosed(con: DataConnection) {
+        connections.filter((c) => c !== con);
+        connectedIds = connectedIds.filter((id) => id !== con.peer);
+        currentGameCard = new Array<string>();
+    }
     function onReceivedMesssage(data: any) {
         if (!data) return;
-        else if (
-            typeof data === "object" &&
-            "id" in data &&
-            "message" in data
-        ) {
-            messages.push(data as MessageObject);
-            while (messages.length > 20) {
-                messages.shift();
+        else if (typeof data === "object") {
+            if ("id" in data && "message" in data) {
+                messages.push(data as MessageObject);
+                while (messages.length > 20) {
+                    messages.shift();
+                }
+                messages = messages;
             }
-            messages = messages;
+            else if ("gameCard" in data) {
+                currentGameCard = data.gameCard;
+                if(playerCard.length === 0) generatePlayerCard();
+            }
+        }
+    }
+
+    $: currentGameCard = new Array<string>();
+    $: playerCard = new Array<string>();
+    const symbols = [
+        "X",
+        "O",
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+    ];
+    function generateNewGameCard() {
+        const selected = new Array<string>();
+        const options = [...symbols];
+        for (let i = 0; i < 4; i++) {
+            const index = Math.floor(Math.random() * options.length);
+            selected.push(options[index]);
+            options.splice(index, 1);
+        }
+        currentGameCard = selected;
+        broadcast({ gameCard: currentGameCard });
+    }
+    function generatePlayerCard() {
+        // make sure one symbol matches
+        // make sure the other three are random
+        const selected = new Array<string>();
+        const options = [...symbols];
+        for (let i = 0; i < 4; i++) {
+            const index = Math.floor(Math.random() * options.length);
+            selected.push(options[index]);
+            options.splice(index, 1);
+        }
+        // matching symbol
+        const matchIndex = Math.floor(Math.random() * selected.length);
+        selected[matchIndex] = currentGameCard[Math.floor(Math.random() * currentGameCard.length)];
+        playerCard = selected;
+    }
+
+    function onClickedCard(index: number) {
+        const symbol = playerCard[index];
+        if (currentGameCard.includes(symbol)) {
+            generateNewGameCard();
+            generatePlayerCard();
+        } else {
+            // that wasn't it
         }
     }
 </script>
+
+{#if currentGameCard.length > 0}
+    <Card clicked={onClickedCard} symbols={currentGameCard} />
+    <Card clicked={onClickedCard} symbols={playerCard} />
+{/if}
 
 <p>
     My ID: {peerId}
