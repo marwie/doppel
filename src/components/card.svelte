@@ -35,6 +35,8 @@
         border: none;
         border-radius: 5px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 30%;
+        max-width: 4rem;
     }
 
     .card.not-clickable button {
@@ -42,13 +44,11 @@
         box-shadow: none;
         background-color: rgba(220, 220, 220, 1);
         color: black;
-        width: 10%;
     }
     .card.clickable button {
         background: black;
         color: white;
         cursor: pointer;
-        width: 10%;
     }
     .card.card.clickable button:hover {
         background: white;
