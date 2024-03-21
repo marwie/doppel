@@ -253,8 +253,8 @@
     {/if}
 
     {#if connectedIds.length > 0}
-        <span class="text"
-            >You are <span
+        <div class="meta text">
+            You are <span
                 class="name"
                 style="color:{hexColorFromString(peerId)}">{peerId}</span
             >
@@ -263,8 +263,8 @@
                 class="name"
                 style="color:{hexColorFromString(connectedIds[0])}"
                 >{connectedIds.join(", ")}</span
-            ></span
-        >
+            >
+        </div>
         <div class="chat">
             <div class="messages">
                 {#each messages as msg}
@@ -279,7 +279,9 @@
     {:else}
         <p class="intro">
             Want to play?<br />
-            <a class="share" href="/" on:click={shareLink}>Send this link to a friend</a>
+            <a class="share" href="/" on:click={shareLink}
+                >Send this link to a friend</a
+            >
         </p>
     {/if}
 </div>
@@ -300,14 +302,14 @@
         border-bottom: 0px;
     }
     .text {
-        color: rgba(0, 0, 0, 0.5);
+        color: rgba(0, 0, 0, 0.2);
+        line-height: 1.3rem;
+        font-size: 1rem;
     }
     .name {
         font-weight: bold;
     }
-    .title {
-        margin: 0;
-    }
+
     .chat {
         position: fixed;
         bottom: 0;
@@ -319,11 +321,27 @@
         padding: 0.5rem;
         margin: 1rem;
     }
+    .chat button {
+        color: black;
+        background: rgb(200, 200, 100);
+        cursor: pointer;
+        font-size: 1.3rem;
+    }
+    .chat button:hover {
+        background: rgb(220, 220, 0);
+    }
     .chat .messages {
         display: flex;
         flex-direction: column;
-        gap: 0rem;
+        gap: .5rem;
         padding-bottom: 1rem;
         text-align: right;
+        line-height: 1rem;
+    }
+    .chat .messages span {
+        background: white;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        z-index: 999;
     }
 </style>
