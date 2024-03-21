@@ -268,8 +268,8 @@
         </div>
         <div class="chat">
             <div class="messages">
-                {#each messages as msg}
-                    <span style="color:{msg.color}">{msg.message}</span>
+                {#each messages as msg, index}
+                    <span style="color:{msg.color};opacity:{1}">{msg.message}</span>
                 {/each}
             </div>
             <form on:submit|preventDefault={__sendMessage}>
@@ -328,6 +328,10 @@
         line-height: 1.3;
         padding: 0.5rem;
         margin: 1rem;
+        pointer-events: none;
+    }
+    .chat button, .chat input {
+        pointer-events: auto;
     }
     .chat button {
         color: black;
