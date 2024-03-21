@@ -134,6 +134,7 @@
                 }
                 messages = messages;
             } else if ("gameCard" in data) {
+                correctSource?.play();
                 currentGameCard = data.gameCard;
                 if (playerCard.length === 0) generatePlayerCard();
             }
@@ -178,13 +179,20 @@
         playerCard = selected;
     }
 
+    const correctSound = "correct.wav";
+    const incorrectSound = "wrong.wav";
+    let correctSource: HTMLAudioElement | null = null;
+    let incorrectSource: HTMLAudioElement | null = null;
+
     function onClickedCard(index: number) {
         const symbol = playerCard[index];
         if (currentGameCard.includes(symbol)) {
             generateNewGameCard();
             generatePlayerCard();
+            correctSource?.play();
         } else {
             // that wasn't it
+            incorrectSource?.play();
         }
     }
 
@@ -209,6 +217,8 @@
     {#if currentGameCard.length > 0}
         <Card symbols={currentGameCard} />
         <Card clicked={onClickedCard} symbols={playerCard} clickable />
+        <audio src={correctSound} bind:this={correctSource} />
+        <audio src={incorrectSound} bind:this={incorrectSource} />
     {/if}
 
     {#if connectedIds.length > 0}
