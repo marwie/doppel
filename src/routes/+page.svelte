@@ -281,7 +281,7 @@
         <p class="intro">
             Want to play?<br />
             <a class="share" href="/" on:click={shareLink}
-                >Send this link to a friend</a
+                >Click & Send this link to a friend</a
             ><br />
             {#if room?.length}
                 <small>You are in room {room}</small>
