@@ -137,9 +137,19 @@
                 }
                 messages = messages;
             } else if ("gameCard" in data) {
-                correctSource?.play();
                 currentGameCard = data.gameCard;
                 if (playerCard.length === 0) generatePlayerCard();
+
+                // not sure why this is not bound here. it works in the click event
+                // if (!correctSource) {
+                //     correctSource = document.getElementById(
+                //         "correctsource",
+                //     ) as HTMLAudioElement;
+                // }
+                // if (correctSource) {
+                //     correctSource.currentTime = 0;
+                //     correctSource.play();
+                // }
             }
         }
     }
@@ -234,19 +244,31 @@
     {#if currentGameCard.length > 0}
         <Card symbols={currentGameCard} />
         <Card clicked={onClickedCard} symbols={playerCard} clickable />
-        <audio src={correctSound} bind:this={correctSource} />
+        <audio
+            id="correctsource"
+            src={correctSound}
+            bind:this={correctSource}
+        />
         <audio src={incorrectSound} bind:this={incorrectSource} />
     {/if}
 
     {#if connectedIds.length > 0}
         <span class="text"
-            >You are <span class="name" style="color:{hexColorFromString(peerId)}">{peerId}</span> and you play against
-            <span class="name" style="color:{hexColorFromString(connectedIds[0])}">{connectedIds.join(", ")}</span></span
+            >You are <span
+                class="name"
+                style="color:{hexColorFromString(peerId)}">{peerId}</span
+            >
+            and you play against
+            <span
+                class="name"
+                style="color:{hexColorFromString(connectedIds[0])}"
+                >{connectedIds.join(", ")}</span
+            ></span
         >
         <div class="chat">
             <div class="messages">
                 {#each messages as msg}
-                    <span style=color:{msg.color}>{msg.message}</span>
+                    <span style="color:{msg.color}">{msg.message}</span>
                 {/each}
             </div>
             <form on:submit|preventDefault={__sendMessage}>
@@ -255,9 +277,9 @@
             </form>
         </div>
     {:else}
-        <p>
+        <p class="intro">
             Want to play?<br />
-            <a href="/" on:click={shareLink}>Send this link to a friend</a>
+            <a class="share" href="/" on:click={shareLink}>Send this link to a friend</a>
         </p>
     {/if}
 </div>
@@ -265,6 +287,17 @@
 <style>
     .page {
         padding: 1rem;
+    }
+    .intro {
+        padding: 1rem 1.5rem;
+    }
+    .share {
+        color: #f183cb;
+        cursor: pointer;
+        border-bottom: 3px dotted #f183cb55;
+    }
+    .share:hover {
+        border-bottom: 0px;
     }
     .text {
         color: rgba(0, 0, 0, 0.5);
