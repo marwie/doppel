@@ -6,6 +6,7 @@
     import type Peer from "peerjs";
     import Card from "../components/card.svelte";
     import { getCuteName } from "$lib/cute names";
+    import { base } from "$app/paths";
 
     $: peerId = "";
     $: messages = new Array<MessageObject>();
@@ -148,7 +149,7 @@
     const symbols = new Array<string>();
     for (let i = 0; i < 5; i++) {
         const number = i < 10 ? "0" + i : i;
-        const path = "./cards/" + number + ".png";
+        const path = base + "/cards/" + number + ".png";
         symbols.push(path);
     }
     function generateNewGameCard() {
@@ -179,8 +180,8 @@
         playerCard = selected;
     }
 
-    const correctSound = "./correct.wav";
-    const incorrectSound = "./wrong.wav";
+    const correctSound = base + "/correct.wav";
+    const incorrectSound = base + "/wrong.wav";
     let correctSource: HTMLAudioElement | null = null;
     let incorrectSource: HTMLAudioElement | null = null;
 
