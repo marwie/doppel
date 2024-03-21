@@ -148,7 +148,7 @@
     const symbols = new Array<string>();
     for (let i = 0; i < 5; i++) {
         const number = i < 10 ? "0" + i : i;
-        const path = "/cards/" + number + ".png";
+        const path = "./cards/" + number + ".png";
         symbols.push(path);
     }
     function generateNewGameCard() {
@@ -179,8 +179,8 @@
         playerCard = selected;
     }
 
-    const correctSound = "correct.wav";
-    const incorrectSound = "wrong.wav";
+    const correctSound = "./correct.wav";
+    const incorrectSound = "./wrong.wav";
     let correctSource: HTMLAudioElement | null = null;
     let incorrectSource: HTMLAudioElement | null = null;
 
