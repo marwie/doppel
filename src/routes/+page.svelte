@@ -8,6 +8,7 @@
     import { getCuteName } from "$lib/cute names";
     import { base } from "$app/paths";
 
+    $: room = "";
     $: peerId = "";
     $: messages = new Array<MessageObject>();
     $: connectedIds = new Array<string>();
@@ -28,7 +29,7 @@
         // timeout just because dev environment should give peer a moment to dispose the old connection
         setTimeout(
             () => {
-                let room = new URLSearchParams(location.search).get("room");
+                room = new URLSearchParams(location.search).get("room");
                 if (!room) {
                     room = getCuteName();
                     __setRoom(room);
@@ -281,7 +282,10 @@
             Want to play?<br />
             <a class="share" href="/" on:click={shareLink}
                 >Send this link to a friend</a
-            >
+            ><br />
+            {#if room?.length}
+                <small>You are in room {room}</small>
+            {/if}
         </p>
     {/if}
 </div>
@@ -292,6 +296,10 @@
     }
     .intro {
         padding: 1rem 1.5rem;
+        line-height: 2rem;
+    }
+    .intro small {
+        color: rgba(0, 0, 0, 0.3);
     }
     .share {
         color: #f183cb;
@@ -333,7 +341,7 @@
     .chat .messages {
         display: flex;
         flex-direction: column;
-        gap: .5rem;
+        gap: 0.5rem;
         padding-bottom: 1rem;
         text-align: right;
         line-height: 1rem;
