@@ -20,6 +20,7 @@
     type MessageObject = {
         id: string;
         message: string;
+        color: string;
     };
 
     onMount(async () => {
@@ -95,6 +96,7 @@
         const data = {
             id: peerId,
             message,
+            color: hexColorFromString(peerId),
         };
         message = "";
         onReceivedMesssage(data);
@@ -130,7 +132,7 @@
         else if (typeof data === "object") {
             if ("id" in data && "message" in data) {
                 messages.push(data as MessageObject);
-                while (messages.length > 10) {
+                while (messages.length > 5) {
                     messages.shift();
                 }
                 messages = messages;
@@ -142,58 +144,72 @@
         }
     }
 
+    function hexColorFromString(str: string) {
+        let id = 0;
+        for (let i = 0; i < str.length; i++) {
+            id += str.charCodeAt(i);
+        }
+        return `#${(id & 0xffffff).toString(16)}`;
+    }
+
     $: currentGameCard = new Array<string>();
     $: playerCard = new Array<string>();
-    const gameSymbolsCount = 3;
+    const gameSymbolsCount = 4;
 
     const symbols = new Array<string>();
-    for (let i = 0; i < 5; i++) {
+    const availableCardsCount = 16;
+    for (let i = 0; i < availableCardsCount; i++) {
         const number = i < 10 ? "0" + i : i;
         const path = base + "/cards/" + number + ".png";
         symbols.push(path);
     }
     function generateNewGameCard() {
-        const selected = new Array<string>();
+        const cards = new Array<string>();
         const options = [...symbols];
         for (let i = 0; i < gameSymbolsCount; i++) {
             const index = Math.floor(Math.random() * options.length);
-            selected.push(options[index]);
+            cards.push(options[index]);
             options.splice(index, 1);
         }
-        currentGameCard = selected;
+        currentGameCard = cards;
         broadcast({ gameCard: currentGameCard });
     }
     function generatePlayerCard() {
         // make sure one symbol matches
         // make sure the other three are random
-        const selected = new Array<string>();
+        const cards = new Array<string>();
         const options = [...symbols];
         for (let i = 0; i < gameSymbolsCount; i++) {
             const index = Math.floor(Math.random() * options.length);
-            selected.push(options[index]);
+            cards.push(options[index]);
             options.splice(index, 1);
         }
         // matching symbol
-        const matchIndex = Math.floor(Math.random() * selected.length);
-        selected[matchIndex] =
+        const goal =
             currentGameCard[Math.floor(Math.random() * currentGameCard.length)];
-        playerCard = selected;
+        if (!cards.includes(goal)) {
+            const matchIndex = Math.floor(Math.random() * cards.length);
+            cards[matchIndex] = goal;
+        }
+        playerCard = cards;
     }
 
     const correctSound = base + "/correct.wav";
     const incorrectSound = base + "/wrong.wav";
-    let correctSource: HTMLAudioElement | null = null;
-    let incorrectSource: HTMLAudioElement | null = null;
+    let correctSource!: HTMLAudioElement;
+    let incorrectSource!: HTMLAudioElement;
 
     function onClickedCard(index: number) {
         const symbol = playerCard[index];
         if (currentGameCard.includes(symbol)) {
             generateNewGameCard();
             generatePlayerCard();
-            correctSource?.play();
+            correctSource.currentTime = 0;
+            correctSource.play();
         } else {
             // that wasn't it
-            incorrectSource?.play();
+            incorrectSource.currentTime = 0;
+            incorrectSource.play();
         }
     }
 
@@ -223,33 +239,58 @@
     {/if}
 
     {#if connectedIds.length > 0}
-        <span>Playing with {connectedIds.join(", ")}. You are {peerId}</span>
-        <h3>Chat</h3>
-        <form on:submit|preventDefault={__sendMessage}>
-            <input type="text" bind:value={message} />
-            <button type="submit">Send</button>
-        </form>
+        <span class="text"
+            >You are <span class="name" style="color:{hexColorFromString(peerId)}">{peerId}</span> and you play against
+            <span class="name" style="color:{hexColorFromString(connectedIds[0])}">{connectedIds.join(", ")}</span></span
+        >
+        <div class="chat">
+            <div class="messages">
+                {#each messages as msg}
+                    <span style=color:{msg.color}>{msg.message}</span>
+                {/each}
+            </div>
+            <form on:submit|preventDefault={__sendMessage}>
+                <input type="text" bind:value={message} />
+                <button type="submit">Send</button>
+            </form>
+        </div>
     {:else}
         <p>
             Want to play?<br />
             <a href="/" on:click={shareLink}>Send this link to a friend</a>
         </p>
     {/if}
-
-    <div class="chat">
-        {#each messages as msg}
-            <span>{msg.id}: {msg.message}</span>
-        {/each}
-    </div>
 </div>
 
 <style>
     .page {
         padding: 1rem;
     }
+    .text {
+        color: rgba(0, 0, 0, 0.5);
+    }
+    .name {
+        font-weight: bold;
+    }
+    .title {
+        margin: 0;
+    }
     .chat {
+        position: fixed;
+        bottom: 0;
+        right: 0;
         display: flex;
+        align-items: flex-end;
         flex-direction: column;
         line-height: 1.3;
+        padding: 0.5rem;
+        margin: 1rem;
+    }
+    .chat .messages {
+        display: flex;
+        flex-direction: column;
+        gap: 0rem;
+        padding-bottom: 1rem;
+        text-align: right;
     }
 </style>

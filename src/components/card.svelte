@@ -27,7 +27,7 @@
         randomScales.length = symbols.length;
         for (let i = 0; i < symbols.length; i++) {
             randomRotations[i] = Math.random() * Math.PI * 2;
-            randomScales[i] = 0.5 + Math.random() * 0.5;
+            randomScales[i] = 0.3 + Math.random() * .8;
         }
     }
 </script>
@@ -36,7 +36,9 @@
     {#each symbols as symbol, index}
         <button on:click={handleClick} data-index={index}>
             <div
-                style="transform: rotate({randomRotations[index]}rad) scale({randomScales[index]});"
+                style="transform: rotate({randomRotations[
+                    index
+                ]}rad) scale({randomScales[index]});"
             >
                 <img alt="card symbol" src={symbol} />
             </div>
@@ -64,7 +66,7 @@
     }
 
     .card button {
-        padding: 0rem;
+        padding: .3rem;
         font-size: 2rem;
         border: none;
         border-radius: 1rem;
@@ -74,6 +76,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        border: 1px solid rgba(0, 0, 0, 0.2);
     }
 
     .card button > * {
@@ -83,16 +86,17 @@
     .card.not-clickable button {
         pointer-events: none;
         box-shadow: none;
-        background-color: rgba(220, 220, 220, 1);
+        background-color: rgba(240, 245, 240, 1);
         color: black;
     }
     .card.clickable button {
-        background: black;
+        background-color: rgba(230, 230, 240, 1);
         color: white;
         cursor: pointer;
+        transition: transform 0.5s;
     }
     .card.card.clickable button:hover {
-        background: white;
-        color: black;
+        transform: scale(1.1);
+        transition: transform 0.3s;
     }
 </style>
