@@ -229,7 +229,7 @@
         if (navigator.share) {
             navigator?.share({
                 title: "Play a game with me",
-                text: "I'm playing a game with a friend. Join me!",
+                text: "I'd love to play a game with you. Click the link to join me.",
                 url: location.href,
             });
         } else {
