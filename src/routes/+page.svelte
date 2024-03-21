@@ -142,24 +142,18 @@
 
     $: currentGameCard = new Array<string>();
     $: playerCard = new Array<string>();
-    const symbols = [
-        "X",
-        "O",
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "J",
-    ];
+    const gameSymbolsCount = 3;
+
+    const symbols = new Array<string>();
+    for (let i = 0; i < 5; i++) {
+        const number = i < 10 ? "0" + i : i;
+        const path = "/cards/" + number + ".png";
+        symbols.push(path);
+    }
     function generateNewGameCard() {
         const selected = new Array<string>();
         const options = [...symbols];
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < gameSymbolsCount; i++) {
             const index = Math.floor(Math.random() * options.length);
             selected.push(options[index]);
             options.splice(index, 1);
@@ -172,7 +166,7 @@
         // make sure the other three are random
         const selected = new Array<string>();
         const options = [...symbols];
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < gameSymbolsCount; i++) {
             const index = Math.floor(Math.random() * options.length);
             selected.push(options[index]);
             options.splice(index, 1);
